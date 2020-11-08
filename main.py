@@ -11,6 +11,9 @@ from setting_secret import *
 language_client = language_v1.LanguageServiceClient.from_service_account_file("credentials.json")
 storage_client = storage.Client.from_service_account_json("credentials.json")
 bucket = storage_client.get_bucket('slack_bot_storage')
+twitter = OAuth1Session(CK, CS, AT, AS)
+
+
 def main():
     keyword = fetch_trend_top()  # type: str
     tweet_list = fetch_tweet_list(keyword)  # type: list
@@ -23,6 +26,9 @@ def main():
         noun_list.extend(extract_noun(text))
 
     create_word_cloud(noun_list, keyword)
+    post_tweet(keyword)
+
+
 def fetch_trend_top() -> str:
     endpoint_url = "https://api.twitter.com/1.1/trends/place.json?id=23424856"  # type: str
     header = {  # type: dict
@@ -82,3 +88,21 @@ def download_font_file():
             blob.download_to_filename("/tmp/ヒラギノ角ゴシック W3.ttc")
         except Exception as exception:
             print(exception)
+
+
+def post_tweet(keyword: str):
+    endpoint_url = "https://upload.twitter.com/1.1/media/upload.json"  # type: str
+    files = {  # type: dict
+        "media": open('/tmp/wc_image_ja.png', 'rb')
+    }
+    response = twitter.post(url=endpoint_url, files=files)  # type: response
+    media_id = json.loads(response.text)['media_id']  # type: str
+
+    endpoint_url = "https://api.twitter.com/1.1/statuses/update.json"  # type: str
+    # Media ID を付加してテキストを投稿
+    params = {'status': "{}のWordCloud".format(keyword), "media_ids": [media_id]}  # type: dict
+    twitter.post(url=endpoint_url, params=params)
+
+
+if __name__ == '__main__':
+    main()
