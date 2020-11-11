@@ -74,7 +74,7 @@ def create_word_cloud(noun_list: list, keyword: str, trend_noun_list: list):
     download_font_file()
 
     font_path = "/tmp/ヒラギノ角ゴシック W3.ttc"  # type : str
-    stop_words = ["RT", "@", ":/", 'もの', 'こと', 'とき', 'そう', 'たち', 'これ', 'よう', 'これら', 'それ', 'すべて', keyword]  # type: list
+    stop_words = ["RT", "@", ":/", 'もの', 'こと', 'とき', 'そう', 'たち', 'これ', 'よう', 'これら', 'それ', 'すべて', 'https', keyword]  # type: list
     stop_words.extend(trend_noun_list)
     word_chain = ' '.join(noun_list)
     word_cloud = WordCloud(background_color="white", font_path=font_path, contour_color='steelblue', collocations=False,
@@ -104,7 +104,7 @@ def post_tweet(keyword: str):
 
     endpoint_url = "https://api.twitter.com/1.1/statuses/update.json"  # type: str
     # Media ID を付加してテキストを投稿
-    params = {'status': "{}のWordCloud".format(keyword), "media_ids": [media_id]}  # type: dict
+    params = {'status': "{}\nのWordCloud".format(keyword), "media_ids": [media_id]}  # type: dict
     twitter.post(url=endpoint_url, params=params)
 
 
