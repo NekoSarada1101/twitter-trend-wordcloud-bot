@@ -14,18 +14,21 @@ bucket = storage_client.get_bucket('slack_bot_storage')
 twitter = OAuth1Session(CK, CS, AT, AS)
 
 
-def main():
+def main(data, context):
     keyword = fetch_trend_top()  # type: str
     tweet_list = fetch_tweet_list(keyword)  # type: list
 
+    trend_noun_list = []  # type: list
     noun_list = []  # type: list
+    
+    trend_noun_list.extend(extract_noun(remove_emoji(keyword)))
 
     for index in range(len(tweet_list)):
         text = remove_emoji(tweet_list[index]["text"])  # type: str
         # 名詞を抽出
         noun_list.extend(extract_noun(text))
 
-    create_word_cloud(noun_list, keyword)
+    create_word_cloud(noun_list, keyword, trend_noun_list)
     post_tweet(keyword)
 
 
@@ -67,11 +70,12 @@ def extract_noun(text: str) -> list:
     return noun_list
 
 
-def create_word_cloud(noun_list: list, keyword: str):
+def create_word_cloud(noun_list: list, keyword: str, trend_noun_list: list):
     download_font_file()
 
     font_path = "/tmp/ヒラギノ角ゴシック W3.ttc"  # type : str
     stop_words = ["RT", "@", ":/", 'もの', 'こと', 'とき', 'そう', 'たち', 'これ', 'よう', 'これら', 'それ', 'すべて', keyword]  # type: list
+    stop_words.extend(trend_noun_list)
     word_chain = ' '.join(noun_list)
     word_cloud = WordCloud(background_color="white", font_path=font_path, contour_color='steelblue', collocations=False,
                            contour_width=3, width=900, height=500, stopwords=set(stop_words)).generate(word_chain)
