@@ -16,17 +16,18 @@ twitter = OAuth1Session(CK, CS, AT, AS)
 
 def main(data, context):
     keyword = fetch_trend_top()  # type: str
+    print(keyword)
     tweet_list = fetch_tweet_list(keyword)  # type: list
+    print("tweets={}".format(len(tweet_list)))
 
-    trend_noun_list = []  # type: list
+    trend_noun_list = extract_noun(remove_emoji(keyword))  # type: list
+
     noun_list = []  # type: list
-    
-    trend_noun_list.extend(extract_noun(remove_emoji(keyword)))
-
     for index in range(len(tweet_list)):
         text = remove_emoji(tweet_list[index]["text"])  # type: str
         # 名詞を抽出
         noun_list.extend(extract_noun(text))
+    print("nouns={}".format(len(noun_list)))
 
     create_word_cloud(noun_list, keyword, trend_noun_list)
     post_tweet(keyword)
@@ -38,15 +39,15 @@ def fetch_trend_top() -> str:
         "Authorization": "Bearer " + BEARER_KEY
     }
     response = requests.get(url=endpoint_url, headers=header)  # type: response
-    top_trend = json.loads(response.text)[0]["trends"][0]["name"]  # type: str
+    response_json = json.loads(response.text)  # type: json
+    print("trend_response\n{}".format(response_json))
+    top_trend = response_json[0]["trends"][0]["name"]  # type: str
     return top_trend
 
 
 def fetch_tweet_list(keyword: str) -> list:
     keyword = urllib.parse.quote(keyword)  # type: str
     max_results = 100  # type: int
-    endpoint_url = "https://api.twitter.com/2/tweets/search/recent?query={}&max_results={}".format(keyword, str(
-        max_results))  # type: str
     header = {  # type: dict
         "Authorization": "Bearer " + BEARER_KEY
     }
@@ -116,7 +117,8 @@ def post_tweet(keyword: str):
     endpoint_url = "https://api.twitter.com/1.1/statuses/update.json"  # type: str
     # Media ID を付加してテキストを投稿
     params = {'status': "{}\nのWordCloud".format(keyword), "media_ids": [media_id]}  # type: dict
-    twitter.post(url=endpoint_url, params=params)
+    response = twitter.post(url=endpoint_url, params=params)  # type: response
+    print("post_response\n{}".format(json.loads(response.text)))
 
 
 if __name__ == '__main__':
