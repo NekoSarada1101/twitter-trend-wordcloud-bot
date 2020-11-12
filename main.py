@@ -50,8 +50,18 @@ def fetch_tweet_list(keyword: str) -> list:
     header = {  # type: dict
         "Authorization": "Bearer " + BEARER_KEY
     }
-    response = requests.get(url=endpoint_url, headers=header)  # type: response
-    tweet_list = json.loads(response.text)["data"]  # type: list
+    tweet_list = []  # type: list
+    next_token = ""  # type: str
+    for i in range(3):
+        endpoint_url = "https://api.twitter.com/2/tweets/search/recent?query={}&max_results={}".format(keyword, str(
+            max_results))  # type: str
+        if i == 1 or i == 2:
+            endpoint_url = endpoint_url + "&next_token={}".format(next_token)
+        response = requests.get(url=endpoint_url, headers=header)  # type: response
+        response_json = json.loads(response.text)  # type: json
+        print("tweet_response\n{}".format(response_json))
+        tweet_list.extend(response_json["data"])
+        next_token = response_json["meta"]["next_token"]
     return tweet_list
 
 
