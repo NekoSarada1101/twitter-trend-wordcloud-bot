@@ -12,11 +12,11 @@ twitter = OAuth1Session(CK, CS, AT, AS)
 
 
 def main(data, context):
-    post_tweet(keyword)
     trend_word = fetch_trend_top()  # type: str
     tweet_list = fetch_tweet_list(trend_word)  # type: list
     noun_list = extract_noun(tweet_list)  # type: list
     create_word_cloud(noun_list)
+    post_tweet(trend_word)
 
 
 def fetch_trend_top() -> str:
@@ -88,18 +88,16 @@ def create_word_cloud(noun_list: list):
 
 def post_tweet(keyword: str):
     endpoint_url = "https://upload.twitter.com/1.1/media/upload.json"  # type: str
-    files = {  # type: dict
-        "media": open('/tmp/wc_image_ja.png', 'rb')
-    }
-    response = twitter.post(url=endpoint_url, files=files)  # type: response
+    files = {"media": open('/tmp/wc_image_ja.png', 'rb')}  # type: dict
+    response = twitter.post(url=endpoint_url, files=files)
     media_id = json.loads(response.text)['media_id']  # type: str
 
     endpoint_url = "https://api.twitter.com/1.1/statuses/update.json"  # type: str
     # Media ID を付加してテキストを投稿
     params = {'status': "{}\nのWordCloud".format(keyword), "media_ids": [media_id]}  # type: dict
     response = twitter.post(url=endpoint_url, params=params)  # type: response
-    print("post_response\n{}".format(json.loads(response.text)))
+    print(response)
 
 
 if __name__ == '__main__':
-    main()
+    main("data", "context")
