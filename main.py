@@ -5,7 +5,7 @@ import requests
 from google.cloud import language_v1
 from wordcloud import WordCloud
 from requests_oauthlib import OAuth1Session
-from setting_secret import *
+from settings import *
 
 language_client = language_v1.LanguageServiceClient.from_service_account_file("credentials.json")
 twitter = OAuth1Session(CK, CS, AT, AS)
