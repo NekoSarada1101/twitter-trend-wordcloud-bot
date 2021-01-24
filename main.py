@@ -1,5 +1,4 @@
 import json
-import os
 import urllib
 import emoji
 import requests
@@ -9,17 +8,15 @@ from requests_oauthlib import OAuth1Session
 from setting_secret import *
 
 language_client = language_v1.LanguageServiceClient.from_service_account_file("credentials.json")
-storage_client = storage.Client.from_service_account_json("credentials.json")
-bucket = storage_client.get_bucket('slack_bot_storage')
 twitter = OAuth1Session(CK, CS, AT, AS)
 
 
 def main(data, context):
-    create_word_cloud(noun_list, keyword, trend_noun_list)
     post_tweet(keyword)
     trend_word = fetch_trend_top()  # type: str
     tweet_list = fetch_tweet_list(trend_word)  # type: list
     noun_list = extract_noun(tweet_list)  # type: list
+    create_word_cloud(noun_list)
 
 
 def fetch_trend_top() -> str:
@@ -72,31 +69,21 @@ def extract_noun(text_list: list) -> list:
             if language_v1.PartOfSpeech.Tag(part_of_speech.tag).name == "NOUN":  # もし名詞なら
                 noun_list.append(token.text.content)
 
-def create_word_cloud(noun_list: list, keyword: str, trend_noun_list: list):
-    download_font_file()
     print("extract_noun complete")
     return noun_list
 
-    font_path = "/tmp/ヒラギノ角ゴシック W3.ttc"  # type : str
-    stop_words = ["RT", "@", ":/", 'もの', 'こと', 'とき', 'そう', 'たち', 'これ', 'よう', 'これら', 'それ', 'すべて', 'https',
-                  keyword]  # type: list
-    stop_words.extend(trend_noun_list)
+
+def create_word_cloud(noun_list: list):
+    font_path = "./font/ヒラギノ角ゴシック W3.ttc"  # type : str
+    stop_words = ["RT", "@", ":/", 'もの', 'こと', 'とき', 'そう', 'たち', 'これ', 'よう', 'これら', 'それ', 'すべて',
+                  'https']  # type: list
     word_chain = ' '.join(noun_list)
-    word_cloud = WordCloud(background_color="white", font_path=font_path, contour_color='steelblue', collocations=False,
-                           contour_width=3, width=900, height=500, stopwords=set(stop_words)).generate(word_chain)
+    word_cloud = WordCloud(background_color="white", font_path=font_path, contour_color='steelblue',
+                           collocations=False,
+                           contour_width=3, width=900, height=500,
+                           stopwords=set(stop_words)).generate(word_chain)
     word_cloud.to_file("/tmp/wc_image_ja.png")
-
-
-def download_font_file():
-    if os.path.exists('/tmp/ヒラギノ角ゴシック W3.ttc') is False:
-        print("Download FontFile")
-        try:
-            # GCSにあるダウンロードしたいファイルを指定
-            blob = bucket.blob("ヒラギノ角ゴシック W3.ttc")
-            # ファイルとしてローカルに落とす
-            blob.download_to_filename("/tmp/ヒラギノ角ゴシック W3.ttc")
-        except Exception as exception:
-            print(exception)
+    print("create_word_cloud complete")
 
 
 def post_tweet(keyword: str):
