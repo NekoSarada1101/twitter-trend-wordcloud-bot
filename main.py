@@ -15,10 +15,6 @@ twitter = OAuth1Session(CK, CS, AT, AS)
 
 
 def main(data, context):
-    print(keyword)
-    tweet_list = fetch_tweet_list(keyword)  # type: list
-    print("tweets={}".format(len(tweet_list)))
-
     trend_noun_list = extract_noun(remove_emoji(keyword))  # type: list
 
     noun_list = []  # type: list
@@ -31,6 +27,7 @@ def main(data, context):
     create_word_cloud(noun_list, keyword, trend_noun_list)
     post_tweet(keyword)
     trend_word = fetch_trend_top()  # type: str
+    tweet_list = fetch_tweet_list(trend_word)  # type: list
 
 
 def fetch_trend_top() -> str:
@@ -44,22 +41,26 @@ def fetch_trend_top() -> str:
 
 def fetch_tweet_list(keyword: str) -> list:
     keyword = urllib.parse.quote(keyword)  # type: str
-    max_results = 100  # type: int
-    header = {  # type: dict
-        "Authorization": "Bearer " + BEARER_KEY
-    }
+    max_results = "100"  # type: str
+    header = {"Authorization": "Bearer " + BEARER_KEY}  # type: dict
     tweet_list = []  # type: list
     next_token = ""  # type: str
-    for i in range(3):
-        endpoint_url = "https://api.twitter.com/2/tweets/search/recent?query={}&max_results={}".format(keyword, str(
-            max_results))  # type: str
-        if i == 1 or i == 2:
+    for i in range(TWEET_COUNT):
+        endpoint_url = "https://api.twitter.com/2/tweets/search/recent?query={}&max_results={}" \
+            .format(keyword, max_results)  # type: str
+        if i >= 1:
             endpoint_url = endpoint_url + "&next_token={}".format(next_token)
-        response = requests.get(url=endpoint_url, headers=header)  # type: response
-        response_json = json.loads(response.text)  # type: json
-        print("tweet_response\n{}".format(response_json))
-        tweet_list.extend(response_json["data"])
-        next_token = response_json["meta"]["next_token"]
+        response = json.loads(requests.get(url=endpoint_url, headers=header).text)  # type: json
+
+        for data in response["data"]:
+            tweet_list.append(data["text"])
+
+        try:
+            next_token = response["meta"]["next_token"]
+        except KeyError:
+            print(KeyError)
+
+    print("fetch_tweet_list complete")
     return tweet_list
 
 
