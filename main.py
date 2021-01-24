@@ -3,7 +3,7 @@ import os
 import urllib
 import emoji
 import requests
-from google.cloud import language_v1, storage
+from google.cloud import language_v1
 from wordcloud import WordCloud
 from requests_oauthlib import OAuth1Session
 from setting_secret import *
@@ -15,19 +15,11 @@ twitter = OAuth1Session(CK, CS, AT, AS)
 
 
 def main(data, context):
-    trend_noun_list = extract_noun(remove_emoji(keyword))  # type: list
-
-    noun_list = []  # type: list
-    for index in range(len(tweet_list)):
-        text = remove_emoji(tweet_list[index]["text"])  # type: str
-        # 名詞を抽出
-        noun_list.extend(extract_noun(text))
-    print("nouns={}".format(len(noun_list)))
-
     create_word_cloud(noun_list, keyword, trend_noun_list)
     post_tweet(keyword)
     trend_word = fetch_trend_top()  # type: str
     tweet_list = fetch_tweet_list(trend_word)  # type: list
+    noun_list = extract_noun(tweet_list)  # type: list
 
 
 def fetch_trend_top() -> str:
@@ -68,19 +60,22 @@ def remove_emoji(src_str: str) -> str:
     return ''.join(c for c in src_str if c not in emoji.UNICODE_EMOJI)
 
 
-def extract_noun(text: str) -> list:
+def extract_noun(text_list: list) -> list:
     noun_list = []  # type: list
-    document = language_v1.Document(content=text, type_=language_v1.Document.Type.PLAIN_TEXT)
-    syntax = language_client.analyze_syntax(request={'document': document})  # type: json
-    for token in syntax.tokens:
-        part_of_speech = token.part_of_speech  # type: json
-        if language_v1.PartOfSpeech.Tag(part_of_speech.tag).name == "NOUN":  # もし名詞なら
-            noun_list.append(token.text.content)
-    return noun_list
+    for text in text_list:
+        text = remove_emoji(text)  # type: str
+        document = language_v1.Document(content=text, type_=language_v1.Document.Type.PLAIN_TEXT)
+        syntax = language_client.analyze_syntax(request={'document': document})  # type: json
 
+        for token in syntax.tokens:
+            part_of_speech = token.part_of_speech  # type: json
+            if language_v1.PartOfSpeech.Tag(part_of_speech.tag).name == "NOUN":  # もし名詞なら
+                noun_list.append(token.text.content)
 
 def create_word_cloud(noun_list: list, keyword: str, trend_noun_list: list):
     download_font_file()
+    print("extract_noun complete")
+    return noun_list
 
     font_path = "/tmp/ヒラギノ角ゴシック W3.ttc"  # type : str
     stop_words = ["RT", "@", ":/", 'もの', 'こと', 'とき', 'そう', 'たち', 'これ', 'よう', 'これら', 'それ', 'すべて', 'https',
