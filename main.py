@@ -15,7 +15,6 @@ twitter = OAuth1Session(CK, CS, AT, AS)
 
 
 def main(data, context):
-    keyword = fetch_trend_top()  # type: str
     print(keyword)
     tweet_list = fetch_tweet_list(keyword)  # type: list
     print("tweets={}".format(len(tweet_list)))
@@ -31,17 +30,15 @@ def main(data, context):
 
     create_word_cloud(noun_list, keyword, trend_noun_list)
     post_tweet(keyword)
+    trend_word = fetch_trend_top()  # type: str
 
 
 def fetch_trend_top() -> str:
     endpoint_url = "https://api.twitter.com/1.1/trends/place.json?id=23424856"  # type: str
-    header = {  # type: dict
-        "Authorization": "Bearer " + BEARER_KEY
-    }
-    response = requests.get(url=endpoint_url, headers=header)  # type: response
-    response_json = json.loads(response.text)  # type: json
-    print("trend_response\n{}".format(response_json))
-    top_trend = response_json[0]["trends"][0]["name"]  # type: str
+    header = {"Authorization": "Bearer " + BEARER_KEY}  # type: dict
+    response = json.loads(requests.get(url=endpoint_url, headers=header).text)  # type: json
+    top_trend = response[0]["trends"][0]["name"]  # type: str
+    print(top_trend)
     return top_trend
 
 
