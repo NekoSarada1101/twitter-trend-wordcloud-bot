@@ -13,3 +13,7 @@ Twitterのトレンド１位の単語を含むツイートで作ったWordCloud�
 * [Cloud Functions](https://cloud.google.com/functions?hl=ja)
 * [Cloud Pub/Sub](https://cloud.google.com/pubsub?hl=ja)
 * [Cloud Scheduler](https://cloud.google.com/scheduler?hl=ja)
+
+## ライセンス
+
+[MIT](https://github.com/NekoSarada1101/twitter-trend-wordcloud-bot/blob/main/LICENSE)
