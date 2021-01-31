@@ -1,4 +1,5 @@
 # twitter-trend-wordcloud-bot
+<img width="600" src="https://user-images.githubusercontent.com/46714670/106375197-75290480-63cd-11eb-805d-aa381ee386f4.png">
 
 ## 概要
 
